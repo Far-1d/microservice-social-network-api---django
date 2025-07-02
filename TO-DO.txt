@@ -1,0 +1,22 @@
+users : 
+    1- make sure email works in production (UserPasswordForgotApi)
+    2- make translations work
+
+profiles:
+    1- don't return profile to blocked users, in views
+        1-1 
+    2- show user data to followers , in serializers    ✅
+        2-1 email in UserSimpleSerializer    ✅
+        2-2 privacy in appy_privacy function in utils.py    ✅
+
+
+following:
+    1- stop blocked users from requesting or following    ✅
+        1-1 FollowRequestApi    ✅
+        1-2 FollowToggleApi    ✅
+    
+    2- don't show followers and following of private profiles to those that are not following
+        2-1 FollowerReadApi
+        2-2 FollowingReadApi
+
+static file urls in product ( do it later )
