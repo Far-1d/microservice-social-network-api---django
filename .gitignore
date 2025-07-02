@@ -5,7 +5,7 @@ project_venv/
 static/
 media/
 *.mo
-**/migrations/
+**/migrations/0*
 logs/
 **/*.sqlite3
 TO-DO.txt
