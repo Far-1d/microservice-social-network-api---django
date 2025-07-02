@@ -77,7 +77,7 @@ You are encouraged to test the API thoroughly and help improve it by reporting a
 
 Please send your feedback or bug reports via:
 
-- **Email:** [Your email address here]
+- **Email:** farid.zarie.000@gmail.com
 - **Telegram:** [@el_fredoo](https://t.me/el_fredoo)
 
 Your contributions and feedback are highly appreciated!

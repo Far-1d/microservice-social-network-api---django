@@ -8,3 +8,4 @@ media/
 **/migrations/
 logs/
 **/*.sqlite3
+TO-DO.txt
