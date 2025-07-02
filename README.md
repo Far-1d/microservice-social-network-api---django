@@ -82,11 +82,6 @@ Please send your feedback or bug reports via:
 
 Your contributions and feedback are highly appreciated!
 
----
-
-## License
-
-[Specify your license here, if any]
 
 ---
 
