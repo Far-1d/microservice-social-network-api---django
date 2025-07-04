@@ -151,6 +151,7 @@ class FollowRequestApi(APIView):
             status=status.HTTP_200_OK
         )
 
+    @transaction.atomic
     def post(self, request):
         serializer = FollowRequestSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
@@ -225,6 +226,7 @@ class FollowRequestApi(APIView):
 class FollowRequestResponseApi(APIView):
     permission_classes = [permissions.IsAuthenticated]
 
+    @transaction.atomic
     def post(self, request):
         serializer = FollowRequestAcceptSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)

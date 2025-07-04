@@ -3,18 +3,10 @@ from apps.relationships.api.v1_0.views.following import(
     FollowCountReadApi as v1_FollowCountReadApi,
     FollowerReadApi as v1_FollowerReadApi,
     FollowingReadApi as v1_FollowingReadApi,
-    # FollowToggleApi as v1_FollowToggleApi,
+    FollowToggleApi as v1_FollowToggleApi,
     FollowRequestApi as v1_FollowRequestApi,
     FollowRequestResponseApi as v1_FollowRequestResponseApi,
 )
-# from apps.relationships.api.v2_0.views.following import(
-#     FollowCountReadApi as v2_FollowCountReadApi,
-#     FollowerReadApi as v2_FollowerReadApi,
-#     FollowingReadApi as v2_FollowingReadApi,
-#     FollowToggleApi as v2_FollowToggleApi,
-#     FollowRequestApi as v2_FollowRequestApi,
-#     FollowRequestAcceptApi as v2_FollowRequestAcceptApi,
-# )
 
 # Create your views here.
 
@@ -33,10 +25,10 @@ FollowingReadViews = version_aware_dispatch({
     '2.0': v1_FollowingReadApi
 })
 
-# FollowToggleViews = version_aware_dispatch({
-#     '1.0': v1_FollowToggleApi,
-#     '2.0': v1_Api,
-# })
+FollowToggleViews = version_aware_dispatch({
+    '1.0': v1_FollowToggleApi,
+    '2.0': v1_FollowToggleApi,
+})
 
 FollowRequestViews = version_aware_dispatch({
     '1.0': v1_FollowRequestApi,

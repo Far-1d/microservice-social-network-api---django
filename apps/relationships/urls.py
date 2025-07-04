@@ -5,7 +5,13 @@ from apps.relationships.views.following import (
     FollowingReadViews,
     FollowRequestViews,
     FollowRequestResponseViews,
+    FollowToggleViews
 )
+
+from apps.relationships.views.block import (
+    BlockViews,
+)
+
 
 app_name = 'relationships'
 
@@ -20,15 +26,24 @@ urlpatterns = [
         FollowRequestResponseViews.as_view()
     ),
     path(
-        '<str:slug>', 
+        'follow', 
+        FollowToggleViews.as_view()
+    ),
+    path(
+        'follow/<str:slug>', 
         FollowingCountReadViews.as_view()
     ),
     path(
-        '<str:slug>/followers', 
+        'follow/<str:slug>/followers', 
         FollowerReadViews.as_view()
     ),
     path(
-        '<str:slug>/followings', 
+        'follow/<str:slug>/followings', 
         FollowingReadViews.as_view()
     ),   
+
+    path(
+        'block', 
+        BlockViews.as_view()
+    ),
 ]
