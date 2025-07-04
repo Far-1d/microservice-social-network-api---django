@@ -1,7 +1,11 @@
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status, permissions
-from django.db.models import Q
+from django.db.models import (
+    Q, 
+    Exists,
+    OuterRef
+)
 from rest_framework.exceptions import ValidationError
 from django.core.paginator import Paginator, EmptyPage
 from django.utils.translation import gettext_lazy as _
@@ -14,6 +18,7 @@ from apps.profiles.api.v1_0.serializers.profile import (
     ProfileListSerializer,
     ProfileUpdateSerializer
 )
+from apps.relationships.models import Block
 
 
 # privacy filters are done in serializer
@@ -46,7 +51,25 @@ class ProfileListApi(APIView):
     permission_classes = [permissions.IsAuthenticated]
 
     def get(self, request):
-        profiles = Profile.objects.exclude(user=request.user)
+        # exclude:
+        # 1- current users profile
+        # 2- users that blocked current user
+        # 3- users that current user blocked them
+        profiles = Profile.objects.exclude(
+            user=request.user
+        ).exclude(
+            Exists(
+                Block.objects.filter(
+                    user=OuterRef('user'),
+                    blocked=request.user
+                )
+            )
+        ).exclude(
+            Exists(Block.objects.filter(
+                user=request.user,
+                blocked=OuterRef('user')
+            ))
+        )
 
         # seach filtering
         if q:= request.GET.get('q'):
