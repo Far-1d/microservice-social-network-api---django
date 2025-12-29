@@ -1,5 +1,10 @@
 from .base import *
 
+
+# 
+# when using production server change the asgi.py settings path
+# 
+
 SECRET_KEY = os.environ.get('SECRET_KEY')
 
 DEBUG = False

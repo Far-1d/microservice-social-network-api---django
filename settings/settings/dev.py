@@ -1,5 +1,10 @@
 from .base import *
 
+
+# 
+# when using production server change the asgi.py settings path
+# 
+
 SECRET_KEY = 'django-insecure-n^)kqh+c$%b90s@)7yxg4p)g9ct5+w4a^38f4-3fauwuvj_u$@'
 
 DEBUG = True

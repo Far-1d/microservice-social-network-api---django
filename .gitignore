@@ -1,4 +1,5 @@
 project_venv/
+windows_venv/
 **/__pycache__/
 *.pyc
 .env
