@@ -97,6 +97,7 @@ class User(AbstractBaseUser, PermissionsMixin):
         super().save(*args, **kwargs)
 
     class Meta:
+        db_table = 'users'
         indexes = [models.Index(fields=['username'])]
         verbose_name = _('User')
         verbose_name_plural = _('Users')

@@ -23,6 +23,10 @@ DATABASES = {
 }
 
 
+# Media files
+MEDIA_URL = 'media/'
+MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+
 # email settings
 # start aiosmtpd with "python3 -m aiosmtpd -n -l localhost:8025"
 EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"

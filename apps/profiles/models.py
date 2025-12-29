@@ -54,6 +54,7 @@ class Profile(BaseModel):
     )
     
     class Meta:
+        db_table = 'profiles'
         indexes = [models.Index(fields=['user'])]
         verbose_name = _('Profile')
         verbose_name_plural = _('Profiles')
@@ -95,6 +96,7 @@ class ProfilePrivacy(BaseModel):
     )
 
     class Meta:
+        db_table = 'profile_privacy'
         indexes = [models.Index(fields=['profile'])]
         verbose_name = _('Profile Privacy')
         verbose_name_plural = _('Profiles Privacy')

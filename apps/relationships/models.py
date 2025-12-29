@@ -27,6 +27,7 @@ class FollowRequest(BaseModel):
     )
 
     class Meta:
+        db_table = 'follow_requests'
         ordering = ['-created_at']
         verbose_name = _('Follow Request')
         verbose_name_plural = _('Follow Requests')
@@ -54,6 +55,7 @@ class Following(BaseModel):
     )
 
     class Meta:
+        db_table = 'followings'
         ordering = ['-created_at']
         verbose_name = _('Followings')
         verbose_name_plural = _('Followings')
@@ -80,6 +82,7 @@ class Block(BaseModel):
     )
 
     class Meta:
+        db_table = 'blocks'
         ordering = ['-created_at']
         verbose_name = _('Blocks')
         verbose_name_plural = _('Blocks')
