@@ -235,8 +235,8 @@ from datetime import timedelta
 SIMPLE_JWT = {
     'SIGNING_KEY': os.environ.get("JWT_SECRET"),
     'ALGORITHM': os.environ.get("JWT_ALGORITHM"),
-    'ACCESS_TOKEN_LIFETIME': timedelta(minutes=5),  # Set access token lifetime
-    'REFRESH_TOKEN_LIFETIME': timedelta(days=7),    # Set refresh token lifetime
+    'ACCESS_TOKEN_LIFETIME': timedelta(minutes=15),  # Set access token lifetime
+    'REFRESH_TOKEN_LIFETIME': timedelta(days=30),    # Set refresh token lifetime
     'ROTATE_REFRESH_TOKENS': True,                  # Rotate refresh tokens
     'BLACKLIST_AFTER_ROTATION': True,
     'AUTH_HEADER_TYPES': ('Bearer',),
