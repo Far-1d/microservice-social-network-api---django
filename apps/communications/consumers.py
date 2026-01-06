@@ -17,7 +17,7 @@ def run_consumer():
 
     for message in consumer:
         topic = str(message.topic)
-        print("--------- new message topic: ", topic)
+
         if topic == 'request-followers':
             producer.handle_followers_request(payload=message.value)
         
@@ -36,26 +36,26 @@ class Producer:
     def handle_followers_request(self, payload: dict):
         correlation_id = payload["request_id"]
         user_id = payload["user_id"]
-        print('message correlation and user_id : ', correlation_id, " ---------- ", user_id)
+
         try:
             user = User.regular_objects.get(id=user_id)
         except User.DoesNotExist:
-            print('user not found !!!')
             self.response_producer.send(
-            'response-followers',
-            key=correlation_id,
-            value={
-                "request_id": correlation_id,
-                "user_id": user_id,
-                "status": "404"
-            }
-        )
-
+                'response-followers',
+                key=correlation_id,
+                value={
+                    "request_id": correlation_id,
+                    "user_id": user_id,
+                    "status": "404"
+                }
+            )
+            return 
+        
         # only following user and staff can view private profiles followers
         followers = user.followers.all()
 
-        follower_ids = [str(fr.id) for fr in followers]
-        print('----- followers are: ', follower_ids)
+        follower_ids = [str(fr.user.id) for fr in followers]
+
         self.response_producer.send(
             'response-followers',
             key=correlation_id,
@@ -75,18 +75,20 @@ class Producer:
             user = User.regular_objects.get(id=user_id)
         except User.DoesNotExist:
             self.response_producer.send(
-            'response-blocked-users',
-            key=correlation_id,
-            value={
-                "request_id": correlation_id,
-                "user_id": user_id,
-                "status": "404"
-            }
-        )
-
+                'response-blocked-users',
+                key=correlation_id,
+                value={
+                    "request_id": correlation_id,
+                    "user_id": user_id,
+                    "status": "404"
+                }
+            )
+            return
+        
         blocked_users = user.blocked_users.all()
-
-        blocked_user_ids = [bu.id for bu in blocked_users]
+        blocked_by_users = user.blockers.all()
+        blocked_user_ids = [str(bu.blocked.id) for bu in blocked_users]
+        blocked_by_user_ids = [str(bu.user.id) for bu in blocked_by_users]
 
         self.response_producer.send(
             'response-blocked-users',
@@ -95,6 +97,7 @@ class Producer:
                 "request_id": correlation_id,
                 "user_id": user_id,
                 "blocked_users": blocked_user_ids,
+                "blocked_by_users": blocked_by_user_ids,
                 "status": "200"
             }
         )
