@@ -65,7 +65,7 @@ class BlockApi(APIView):
         )
         if blocks.exists():
             return Response(
-                {'message': _('Already Requested')},
+                {'message': _('Already Blocked')},
                 status=status.HTTP_400_BAD_REQUEST
             )
 
