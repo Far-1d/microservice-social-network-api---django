@@ -61,7 +61,7 @@ class FollowerReadApi(APIView):
             following=user
         ).exists()
 
-        if user.profile.is_public and not request.user.is_staff and not is_following:
+        if user.profile.is_public and not request.user.is_staff and not is_following and user != request.user:
             return Response(
                 {'message': _('You cannot view folllowers of private profiles')},
                 status=status.HTTP_403_FORBIDDEN
@@ -99,7 +99,7 @@ class FollowingReadApi(APIView):
             following=user
         ).exists()
 
-        if user.profile.is_public and not request.user.is_staff and not is_following:
+        if user.profile.is_public and not request.user.is_staff and not is_following and user != request.user:
             return Response(
                 {'message': _('You cannot view folllowers of private profiles')},
                 status=status.HTTP_403_FORBIDDEN
@@ -168,6 +168,12 @@ class FollowRequestApi(APIView):
         if request.user == followed_user:
             return Response (
                 {'message': _('You cannot request yourself')},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        
+        if Following.objects.filter(user=request.user, following=followed_user).exists():
+            return Response (
+                {'message': _('You already followed this user')},
                 status=status.HTTP_400_BAD_REQUEST
             )
 
