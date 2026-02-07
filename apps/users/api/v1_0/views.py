@@ -24,6 +24,7 @@ from django.conf import settings
 from django.db import transaction
 from apps.users.utils import send_email
 import logging
+from apps.communications.events import UserEventManager
 
 logger = logging.getLogger(__name__)
 
@@ -80,6 +81,10 @@ class UserSignupApi(APIView):
         )
 
         tokens = token_serializer.validate({})
+
+        # send user info to other services
+        events = UserEventManager()
+        events.publish('create', user)
 
         return Response(
             {
@@ -271,6 +276,10 @@ class UserUpdateApi(APIView):
             context = {'request':request}
         )
 
+        # send user info to other services
+        events = UserEventManager()
+        events.publish('update', user)
+
         return Response(
             {
                 'message': _('Account update successful'),
@@ -289,6 +298,10 @@ class UserDeleteApi(APIView):
         
         logger.info(f'user {user.username} soft deleted')
 
+        # send user info to other services
+        events = UserEventManager()
+        events.publish('delete', user)
+        
         return Response(
             status=status.HTTP_204_NO_CONTENT
         )

@@ -10,7 +10,7 @@ from apps.users.api.v1_0.serializers import (
 from apps.base.serializers import CustomTokenObtainPairSerializer
 from apps.users.utils import validate_password
 from django.db import transaction
-
+from apps.communications.events import UserEventManager
 
 class UserSignupApi(APIView):
     permission_classes = [permissions.AllowAny]
@@ -40,6 +40,10 @@ class UserSignupApi(APIView):
         token_serializer = CustomTokenObtainPairSerializer(context={'user': user})
 
         tokens = token_serializer.validate({})
+
+        # send user info to other services
+        events = UserEventManager()
+        events.publish('create', user)
 
         return Response(
             {
