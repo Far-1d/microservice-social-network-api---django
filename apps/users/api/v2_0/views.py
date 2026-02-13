@@ -12,7 +12,7 @@ from apps.base.serializers import CustomTokenObtainPairSerializer
 from apps.users.utils import validate_password
 from django.db import transaction
 from apps.communications.events import UserEventManager
-from apps.users.models import PasswordResetCode
+from apps.users.models import User, PasswordResetCode
 from django.utils import timezone
 from datetime import timedelta
 import logging
@@ -26,8 +26,19 @@ class UserSignupApi(APIView):
     def post(self, request) -> Response:
         serializer = UserSignupSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
+
+        try:
+            deleted_user = User.objects.get(email=serializer.validated_data.get('email'))
+            logger.warning(f"a new user attempts to create account using a deleted account's email")
+            logger.warning(f"email:{deleted_user.email},  deleted at: {deleted_user.deleted_at}")
+            if deleted_user.deleted:
+                deleted_user.delete()
+
+        except User.DoesNotExist:
+            pass
         
-        valid, errors = validate_password(serializer.validated_data['password'])
+        password = request.data.get('password', '')
+        valid, errors = validate_password(password)
 
         if not valid:
             return Response(
@@ -69,7 +80,7 @@ class UserPasswordResetApi(APIView):
     def post(self, request) -> Response:
         serializer = UserPasswordResetSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
-        
+
         # get code object
         try:
             password_reset = PasswordResetCode.objects.select_related('user').select_for_update().get(
@@ -91,12 +102,13 @@ class UserPasswordResetApi(APIView):
             if user.deleted or not user.is_active:
                 logger.warning(f"Password reset attempt for inactive user: {user.email}")
                 return Response(
-                    {'message':_('Account not found')},
-                    status=status.HTTP_403_FORBIDDEN
+                    {'message':_('User not found')},
+                    status=status.HTTP_404_NOT_FOUND
                 )
             
             # v2.0 change
-            valid, errors = validate_password(serializer.validated_data['password'])
+            password = request.data.get('password', '')
+            valid, errors = validate_password(password)
 
             if not valid:
                 return Response(

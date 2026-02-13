@@ -51,7 +51,7 @@ class UserSignupApi(APIView):
     def post(self, request) -> Response:
         serializer = UserSignupSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
-        
+        print("V1 is called")
         # check there is no deleted user with the same email
         # if so, delete it (to do : move deleted user to another table)
         try:

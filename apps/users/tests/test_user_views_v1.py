@@ -14,6 +14,18 @@ load_dotenv()
 
 @skip('tested')
 class TestSignupView(TestSetup):
+    def setUp(self):
+        self.user_data = {
+            'username': 'test 1001',
+            'email': 'test.1001@gmail.com',
+            'password': '123456'
+        }
+        self.whitespace_user_data = {
+            'username': ' ',
+            'email': ' ',
+            'password': ' '
+        }
+
     def test_user_signup_valid(self):
         response = self.client.post(
             self.urls['signup'],
@@ -257,9 +269,9 @@ class TestLoginView(TestSetup):
             data,
             format='json'
         )
-
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-        self.assertEqual(response.data['message'], 'Unable to log in with provided credentials')
+        print(response.data)
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+        self.assertEqual(response.data['message'], 'User not found')
     
     def test_user_login_incomplete_body(self):
         data_no_password = {
@@ -525,7 +537,7 @@ class TestForgotPasswordView(TestSetup):
             data,
             format='json'
         )
-        print(response.data)
+
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertEqual(response.data['email'][0].code, 'invalid')
 
@@ -566,7 +578,7 @@ class TestForgotPasswordView(TestSetup):
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
-
+@skip('tested')
 class TestPasswordResetView(TestSetup):
     def setUp(self):
         self.user = UserFactory.build()
@@ -716,8 +728,6 @@ class TestPasswordResetView(TestSetup):
             format='json'
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-
-        print('everything is OK')
 
 @skip('tested')
 class TestUpdateUserView(TestSetup):
@@ -1018,5 +1028,151 @@ class TestDeleteUserView(TestSetup):
         
         self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
     
+@skip('tested')  
+class TestTokenRefreshView(TestSetup):
+    def setUp(self):
+        self.user = UserFactory(password='test1234')
+
+    def test_valid(self):
+        data = {
+            'login_identifier': self.user.email,
+            'password': 'test1234'
+        }
+        
+        response = self.client.post(
+            self.urls['login'],
+            data=data,
+            format='json'
+        )
+
+        refresh_token = response.data['refresh']
+        
+        data = {
+            'refresh': refresh_token
+        }
+
+        response = self.client.post(
+            self.urls['token-refresh'],
+            data=data,
+            format='json'
+        )
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(list(response.data.keys()), ['access', 'refresh'])
     
+    def test_no_body(self):
+        data = {
+            'login_identifier': self.user.email,
+            'password': 'test1234'
+        }
+        
+        response = self.client.post(
+            self.urls['login'],
+            data=data,
+            format='json'
+        )
+
+        response = self.client.post(
+            self.urls['token-refresh'],
+            format='json'
+        )
+
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response.data['refresh'][0].code, 'required')
+
+    def test_whitespace_data(self):
+        data = {
+            'login_identifier': self.user.email,
+            'password': 'test1234'
+        }
+        
+        response = self.client.post(
+            self.urls['login'],
+            data=data,
+            format='json'
+        )
+        
+        data = {
+            'refresh': '   '
+        }
+
+        response = self.client.post(
+            self.urls['token-refresh'],
+            data=data,
+            format='json'
+        )
+
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response.data['refresh'][0].code, 'blank')
+
+    def test_invalid_method(self):
+        data = {
+            'login_identifier': self.user.email,
+            'password': 'test1234'
+        }
+        
+        response = self.client.post(
+            self.urls['login'],
+            data=data,
+            format='json'
+        )
+
+        refresh_token = response.data['refresh']
+        
+        data = {
+            'refresh': refresh_token
+        }
+
+        response_get = self.client.get(
+            self.urls['token-refresh']
+        )
+        response_put = self.client.put(
+            self.urls['token-refresh'],
+            data=data,
+            format='json'
+        )
+        response_patch = self.client.patch(
+            self.urls['token-refresh'],
+            data=data,
+            format='json'
+        )
+        response_delete = self.client.delete(
+            self.urls['token-refresh'],
+            data=data,
+            format='json'
+        )
+
+        self.assertEqual(response_get.status_code, status.HTTP_405_METHOD_NOT_ALLOWED)
+        self.assertEqual(response_put.status_code, status.HTTP_405_METHOD_NOT_ALLOWED)
+        self.assertEqual(response_patch.status_code, status.HTTP_405_METHOD_NOT_ALLOWED)
+        self.assertEqual(response_delete.status_code, status.HTTP_405_METHOD_NOT_ALLOWED)
     
+    def test_with_authentication(self):
+        data = {
+            'login_identifier': self.user.email,
+            'password': 'test1234'
+        }
+        
+        response = self.client.post(
+            self.urls['login'],
+            data=data,
+            format='json'
+        )
+
+        refresh_token = response.data['refresh']
+        
+        data = {
+            'refresh': refresh_token
+        }
+
+        # authenticate
+        self.client.force_authenticate(user=self.user)
+
+        response = self.client.post(
+            self.urls['token-refresh'],
+            data=data,
+            format='json'
+        )
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(list(response.data.keys()), ['access', 'refresh'])

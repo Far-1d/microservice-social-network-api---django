@@ -58,6 +58,20 @@ This will listen on port 8025 and capture outgoing emails for testing purposes.
 
 ---
 
+
+### Testing
+
+testing API endpoints implemented using factory-boy package. factory boy helps create test data efficiently and maintainably.
+
+to test the code use:
+```
+python3 manage.py test apps --settings=settings.settings.dev
+```
+
+some tests might be marked with "@skip", this tells django to skip them. in order to test all cases remove any @skip you find.
+
+---
+
 ### Environment Variables
 
 Create a `.env` file in your project root with at least the following variables:

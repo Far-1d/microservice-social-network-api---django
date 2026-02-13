@@ -12,18 +12,7 @@ class TestSetup(APITestCase):
             'delete': '/api/users/delete',
             'password-forgot': '/api/users/password-forgot',
             'password-reset': '/api/users/password-reset',
-            'token-refresh': '/api/users/tokens/refresh',
-        }
-        
-        self.user_data = {
-            'username': 'test 1001',
-            'email': 'test.1001@gmail.com',
-            'password': '123456'
-        }
-        self.whitespace_user_data = {
-            'username': ' ',
-            'email': ' ',
-            'password': ' '
+            'token-refresh': '/api/users/token/refresh',
         }
         
         super().__init__(methodName)
