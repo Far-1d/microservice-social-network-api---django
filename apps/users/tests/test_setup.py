@@ -28,9 +28,9 @@ class TestSetup(APITestCase):
         
         super().__init__(methodName)
     
-    def setup(self):
+    def setUp(self):
         self.client.credentials(HTTP_X_API_VERSION='1.0')
-        return super().setup()
+        return super().setUp()
 
-    def teardown(self):
-        return super().teardown()
+    def tearDown(self):
+        return super().tearDown()
