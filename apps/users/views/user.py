@@ -12,6 +12,7 @@ from apps.users.api.v1_0.views import (
 
 from apps.users.api.v2_0.views import (
     UserSignupApi  as V2_UserSignupApi,
+    UserPasswordResetApi  as V2_UserPasswordResetApi,
 )
 
 UserReadViews = version_aware_dispatch({
@@ -36,7 +37,7 @@ UserPasswordForgotViews = version_aware_dispatch({
 
 UserPasswordResetViews = version_aware_dispatch({
     '1.0': V1_UserPasswordResetApi,
-    '2.0': V1_UserPasswordResetApi  # no new feature yet
+    '2.0': V2_UserPasswordResetApi
 })
 
 UserUpdateViews = version_aware_dispatch({

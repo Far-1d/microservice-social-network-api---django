@@ -28,7 +28,6 @@ from apps.communications.events import UserEventManager
 
 logger = logging.getLogger(__name__)
 
-
 class UserReadApi(APIView):
     permission_classes = [permissions.IsAuthenticated]
 
@@ -98,6 +97,13 @@ class UserLoginApi(APIView):
     permission_classes = [permissions.AllowAny]
 
     def post(self, request) -> Response:
+        # don't allow logged in user to login again
+        if request.user.is_authenticated:
+            return Response(
+                {'message': _('You are already logged in')},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
         serializer = UserLoginSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
 
@@ -124,8 +130,8 @@ class UserLoginApi(APIView):
         
         if not user or user.deleted:
             return Response(
-                {'message': _('Unable to log in with provided credentials')},
-                status=status.HTTP_400_BAD_REQUEST
+                {'message': _('User not found')},
+                status=status.HTTP_404_NOT_FOUND
             )
         
         # generate token
@@ -212,8 +218,8 @@ class UserPasswordResetApi(APIView):
             if user.deleted or not user.is_active:
                 logger.warning(f"Password reset attempt for inactive user: {user.email}")
                 return Response(
-                    {'message':_('Account not found')},
-                    status=status.HTTP_403_FORBIDDEN
+                    {'message':_('User not found')},
+                    status=status.HTTP_404_NOT_FOUND
                 )
             
             user.set_password(serializer.validated_data['password'])
@@ -269,6 +275,14 @@ class UserUpdateApi(APIView):
         if  password := serializer.validated_data.get('password'):
             user.set_password(password)
         
+        # notify user that only email or password is updatable
+        if 'email' not in serializer.validated_data.keys() and \
+           'password' not in serializer.validated_data.keys():
+            return Response(
+                {'message':_('Only email and password are updatable')},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        
         user.save()
         
         response_serializer = UserSimpleSerializer(
@@ -293,6 +307,14 @@ class UserDeleteApi(APIView):
 
     def delete(self, request) -> Response:
         user = request.user
+
+        if user.deleted:
+            return Response(
+                {
+                    'message': _('User not found'),
+                },
+                status=status.HTTP_404_NOT_FOUND
+            )
 
         user.soft_delete()
         

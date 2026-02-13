@@ -157,21 +157,21 @@ LOGGING = {
     "disable_existing_loggers": False,
     "formatters":{
         "verbose": {
-            "format": "{levelname} ⤑ {asctime} ⤑ {module} ⤑ {process:d} ⤑ {thread:d} ⤑ {message}",
+            "format": "{levelname} -> {asctime} -> {module} -> {process:d} -> {thread:d} -> {message}",
             "style": "{",
         },
         "medium": {
-            "format": "{levelname} ⤑ {asctime} ⤑ {module} ⤑ {message}",
+            "format": "{levelname} -> {asctime} -> {module} -> {message}",
             "style": "{",
         },
         "simple": {
-            "format": "{levelname} ⤑ {message}",
+            "format": "{levelname} -> {message}",
             "style": "{",
         },
     },
     "handlers": {
         "console": {
-            "level": "DEBUG",
+            "level": "INFO",
             "class": "logging.StreamHandler",
             "formatter": "simple",
         },

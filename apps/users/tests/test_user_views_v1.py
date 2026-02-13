@@ -8,11 +8,13 @@ from django.utils import timezone
 import os, json, time, redis
 from dotenv import load_dotenv
 import threading
+from unittest import skip
 
 load_dotenv()
 
+@skip('tested')
 class TestSignupView(TestSetup):
-    def t1est_user_signup_valid(self):
+    def test_user_signup_valid(self):
         response = self.client.post(
             self.urls['signup'],
             self.user_data,
@@ -24,7 +26,7 @@ class TestSignupView(TestSetup):
         self.assertEqual(User.objects.count(), 1)
         self.assertEqual(User.objects.get().username, self.user_data['username'])
 
-    def t1est_user_signup_with_no_data(self):
+    def test_user_signup_with_no_data(self):
         response = self.client.post(
             self.urls['signup'],
             format='json'
@@ -35,7 +37,7 @@ class TestSignupView(TestSetup):
         self.assertEqual(response.data['email'][0].code, 'required')
         self.assertEqual(User.objects.count(), 0)
     
-    def t1est_user_signup_with_whitespace_data(self):
+    def test_user_signup_with_whitespace_data(self):
         response = self.client.post(
             self.urls['signup'],
             self.whitespace_user_data,
@@ -47,7 +49,7 @@ class TestSignupView(TestSetup):
         self.assertEqual(response.data['email'][0].code, 'blank')
         self.assertEqual(User.objects.count(), 0)
 
-    def t1est_user_signup_with_incomplete_data(self):
+    def test_user_signup_with_incomplete_data(self):
         data = self.user_data.copy()
         # remove email
         data.pop('email')
@@ -62,7 +64,7 @@ class TestSignupView(TestSetup):
         self.assertEqual(response.data['email'][0].code, 'required')
         self.assertEqual(User.objects.count(), 0)
     
-    def t1est_user_signup_slugify(self):
+    def test_user_signup_slugify(self):
         response = self.client.post(
             self.urls['signup'],
             self.user_data,
@@ -73,7 +75,7 @@ class TestSignupView(TestSetup):
         self.assertEqual(User.objects.count(), 1)
         self.assertEqual(User.objects.get().slug, slugify(self.user_data['username']))
 
-    def t1est_user_signup_email_already_exists(self):
+    def test_user_signup_email_already_exists(self):
         data = self.user_data.copy()
         # change username
         data['username'] = 'test 1002'
@@ -97,7 +99,7 @@ class TestSignupView(TestSetup):
         self.assertEqual(User.objects.count(), 1)
         self.assertEqual(response.data['email'][0].code, 'unique')
     
-    def t1est_user_signup_username_already_exists(self):
+    def test_user_signup_username_already_exists(self):
         data = self.user_data.copy()
         # change email
         data['email'] = 'test.1002@gmail.com'
@@ -121,7 +123,7 @@ class TestSignupView(TestSetup):
         self.assertEqual(User.objects.count(), 1)
         self.assertEqual(response.data['username'][0].code, 'unique')
 
-    def t1est_user_signup_with_deleted_account(self):
+    def test_user_signup_with_deleted_account(self):
         response = self.client.post(
             self.urls['signup'],
             self.user_data,
@@ -145,7 +147,7 @@ class TestSignupView(TestSetup):
         self.assertEqual(User.objects.count(), 1)
         self.assertEqual(User.objects.get().username, self.user_data['username'])
 
-    def t1est_user_signup_profile_creation(self):
+    def test_user_signup_profile_creation(self):
         response = self.client.post(
             self.urls['signup'],
             self.user_data,
@@ -157,7 +159,7 @@ class TestSignupView(TestSetup):
         self.assertEqual(Profile.objects.count(), 1)
         self.assertEqual(ProfilePrivacy.objects.count(), 1)
 
-    def t1est_user_signup_event_publish(self):
+    def test_user_signup_event_publish(self):
         REDIS_URL = os.environ.get("REDIS_URL", None)
         redis_client = redis.from_url(
             REDIS_URL,
@@ -201,7 +203,7 @@ class TestSignupView(TestSetup):
         self.assertEqual(events[0]['type'], 'create')
         self.assertEqual(events[0]['data']['username'], self.user_data['username'])
     
-
+@skip('tested')
 class TestLoginView(TestSetup):
     def setUp(self):
         self.user = UserFactory.build()
@@ -214,7 +216,7 @@ class TestLoginView(TestSetup):
         self.deleted_user.deleted_at = timezone.now()
         self.deleted_user.save()
 
-    def t1est_user_login_with_email_valid(self):
+    def test_user_login_with_email_valid(self):
         data = {
             'login_identifier': self.user.email,
             'password': 'test123456'
@@ -229,7 +231,7 @@ class TestLoginView(TestSetup):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response.data['user']['username'], self.user.username)
     
-    def t1est_user_login_with_username_valid(self):
+    def test_user_login_with_username_valid(self):
         data = {
             'login_identifier': self.user.username,
             'password': 'test123456'
@@ -244,7 +246,7 @@ class TestLoginView(TestSetup):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response.data['user']['username'], self.user.username)
 
-    def t1est_user_login_wrong_password(self):
+    def test_user_login_wrong_password(self):
         data = {
             'login_identifier': self.user.email,
             'password': 'wrong_passsword'
@@ -259,7 +261,7 @@ class TestLoginView(TestSetup):
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertEqual(response.data['message'], 'Unable to log in with provided credentials')
     
-    def t1est_user_login_incomplete_body(self):
+    def test_user_login_incomplete_body(self):
         data_no_password = {
             'login_identifier': self.user.email,
         }
@@ -285,7 +287,7 @@ class TestLoginView(TestSetup):
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertEqual(response.data['login_identifier'][0].code, 'required')
 
-    def t1est_user_login_no_body(self):
+    def test_user_login_no_body(self):
         response = self.client.post(
             self.urls['login'],
             format='json'
@@ -295,7 +297,7 @@ class TestLoginView(TestSetup):
         self.assertEqual(response.data['password'][0].code, 'required')
         self.assertEqual(response.data['login_identifier'][0].code, 'required')
 
-    def t1est_user_login_returns_tokens_and_user_data(self):
+    def test_user_login_returns_tokens_and_user_data(self):
         data = {
             'login_identifier': self.user.email,
             'password': 'test123456'
@@ -310,7 +312,7 @@ class TestLoginView(TestSetup):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertListEqual(list(response.data.keys()), ['refresh', 'access', 'user'])
 
-    def t1est_user_login_whitespace_data(self):
+    def test_user_login_whitespace_data(self):
         data = {
             'login_identifier': '  ',
             'password': '  '
@@ -324,7 +326,7 @@ class TestLoginView(TestSetup):
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
-    def t1est_user_login_deleted_user(self):
+    def test_user_login_deleted_user(self):
         data = {
             'login_identifier': self.deleted_user.email,
             'password': 'test123456'
@@ -338,7 +340,7 @@ class TestLoginView(TestSetup):
         
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
 
-    def t1est_user_login_case_sensetive_password(self):
+    def test_user_login_case_sensetive_password(self):
         data = {
             'login_identifier': self.user.email,
             'password': 'TEST123456'
@@ -353,7 +355,7 @@ class TestLoginView(TestSetup):
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
         self.assertEqual(response.data['message'], 'User not found')
 
-    def t1est_user_login_case_sensetive_email(self):
+    def test_user_login_case_sensetive_email(self):
         data = {
             'login_identifier': str(self.user.email).upper(),
             'password': 'test123456'
@@ -367,7 +369,7 @@ class TestLoginView(TestSetup):
 
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
 
-    def t1est_user_login_case_sensetive_username(self):
+    def test_user_login_case_sensetive_username(self):
         data = {
             'login_identifier': str(self.user.username).upper(),
             'password': 'test123456'
@@ -381,7 +383,7 @@ class TestLoginView(TestSetup):
 
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
 
-    def t1est_user_login_invalid_methods(self):
+    def test_user_login_invalid_methods(self):
         data = {
             'login_identifier': self.user.username,
             'password': 'test123456'
@@ -414,7 +416,7 @@ class TestLoginView(TestSetup):
         self.assertEqual(response_patch.status_code, status.HTTP_405_METHOD_NOT_ALLOWED)
         self.assertEqual(response_delete.status_code, status.HTTP_405_METHOD_NOT_ALLOWED)
 
-    def t1est_user_login_already_logged_in(self):
+    def test_user_login_already_logged_in(self):
         self.client.force_authenticate(user=self.user) 
 
         data = {
@@ -431,7 +433,7 @@ class TestLoginView(TestSetup):
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertEqual(response.data['message'], 'You are already logged in')
 
-
+@skip('tested')
 class TestGetUserView(TestSetup):
     def setUp(self):
         self.user = UserFactory.build()
@@ -440,7 +442,7 @@ class TestGetUserView(TestSetup):
     def tearDown(self):
         self.client.force_authenticate(user=None) 
 
-    def t1est_get_user_valid(self):
+    def test_get_user_valid(self):
         response = self.client.get(
             self.urls['read']
         )
@@ -448,7 +450,7 @@ class TestGetUserView(TestSetup):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response.data['username'], self.user.username)
     
-    def t1est_get_user_not_authenticated(self):
+    def test_get_user_not_authenticated(self):
         self.client.force_authenticate(user=None) 
 
         response = self.client.get(
@@ -457,7 +459,7 @@ class TestGetUserView(TestSetup):
 
         self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
 
-    def t1est_get_user_invalid_method(self):
+    def test_get_user_invalid_method(self):
         response_post = self.client.post(
             self.urls['read']
         )
@@ -480,12 +482,12 @@ class TestGetUserView(TestSetup):
         self.assertEqual(response_delete.status_code, status.HTTP_405_METHOD_NOT_ALLOWED)
         self.assertEqual(response_options.status_code, status.HTTP_200_OK)
 
-
+@skip('tested')
 class TestForgotPasswordView(TestSetup):
     def setUp(self):
         self.user = UserFactory.build()
 
-    def t1est_forgot_password_valid(self):
+    def test_forgot_password_valid(self):
         data = {
             'email': self.user.email
         }
@@ -499,7 +501,7 @@ class TestForgotPasswordView(TestSetup):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response.data['message'], 'If this email exists, a reset code has been sent')
 
-    def t1est_forgot_password_not_existing_email(self):
+    def test_forgot_password_not_existing_email(self):
         data = {
             'email': 'unknown@gmail.com'
         }
@@ -513,7 +515,7 @@ class TestForgotPasswordView(TestSetup):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response.data['message'], 'If this email exists, a reset code has been sent')
 
-    def t1est_forgot_password_bad_format_email(self):
+    def test_forgot_password_bad_format_email(self):
         data = {
             'email': 'unknown.gmail'
         }
@@ -527,7 +529,7 @@ class TestForgotPasswordView(TestSetup):
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertEqual(response.data['email'][0].code, 'invalid')
 
-    def t1est_forgot_password_already_logged_in(self):
+    def test_forgot_password_already_logged_in(self):
         self.client.force_authenticate(self.user)
         
         data = {
@@ -543,7 +545,7 @@ class TestForgotPasswordView(TestSetup):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response.data['message'], 'If this email exists, a reset code has been sent')
 
-    def t1est_forgot_password_resubmit_request(self):
+    def test_forgot_password_resubmit_request(self):
         data = {
             'email': self.user.email
         }
@@ -575,8 +577,6 @@ class TestPasswordResetView(TestSetup):
             user=self.user
         )
 
-        self.client.force_authenticate(user=None)
-
     def test_password_reset_valid(self):
         data = {
             'code': self.code.code,
@@ -604,24 +604,122 @@ class TestPasswordResetView(TestSetup):
         )
     
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-
+  
+    def test_password_reset_resubmit_code(self):
+        data = {
+            'code': self.code.code,
+            'password': 'test123'
+        }
+        response = self.client.post(
+            self.urls['password-reset'],
+            data=data,
+            format='json'
+        )
         
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
 
-    def t1est_password_reset_resubmit_code(self):
-        pass
-    
-    def t1est_password_reset_deleted_account(self):
-        pass
-    
-    def t1est_password_reset_resubmit_code(self):
-        pass
-    
-    def t1est_password_reset_no_code_existing(self):
-        pass
+        # re-submit
+        response = self.client.post(
+            self.urls['password-reset'],
+            data=data,
+            format='json'
+        )
+        
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertIn('Failed to verify code', response.data['message'])
 
-    def t1est_password_reset_multiple_code_exist(self):
-        pass
+    def test_password_reset_deleted_account(self):
+        # create deleted user
+        deleted_user = UserFactory.build()
+        deleted_user.deleted = True
+        deleted_user.save()
+        
+        deleted_user_code = PasswordCodeFactory(
+            user=deleted_user
+        )
+        
+        data = {
+            'code': deleted_user_code.code,
+            'password': 'test123'
+        }
+        response = self.client.post(
+            self.urls['password-reset'],
+            data=data,
+            format='json'
+        )
+        
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+        self.assertEqual(response.data['message'], 'User not found')
+    
+    def test_password_reset_no_code_existing(self):
+        self.code.delete()
+        data = {
+            'code': self.code.code,
+            'password': 'test123'
+        }
+        response = self.client.post(
+            self.urls['password-reset'],
+            data=data,
+            format='json'
+        )
+        
+        # doesn't show that code is not found
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertIn('Failed to verify code', response.data['message'])
 
+    def test_password_reset_multiple_code_exist(self):
+        # created a duplicate code
+        code2 = PasswordCodeFactory.build(
+            user=self.user
+        )
+        code2.code = self.code.code
+        code2.save()
+
+        data = {
+            'code': self.code.code,
+            'password': 'test123'
+        }
+
+        response = self.client.post(
+            self.urls['password-reset'],
+            data=data,
+            format='json'
+        )
+
+        self.assertEqual(response.status_code, status.HTTP_500_INTERNAL_SERVER_ERROR)
+        self.assertIn('System error', response.data['message'])
+
+        ## ensure requesting a new code fixes the issue
+        # issuing a new code
+        data = {
+            'email': self.user.email
+        }
+        response = self.client.post(
+            self.urls['password-forgot'],
+            data=data,
+            format='json'
+        )
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+        # find the new code
+        from apps.users.models import PasswordResetCode
+        new_code = PasswordResetCode.objects.filter(user=self.user).first().code
+        
+        data = {
+            'code': new_code,
+            'password': 'test123'
+        }
+
+        response = self.client.post(
+            self.urls['password-reset'],
+            data=data,
+            format='json'
+        )
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+        print('everything is OK')
+
+@skip('tested')
 class TestUpdateUserView(TestSetup):
     def setUp(self):
         self.user = UserFactory.build()
@@ -636,7 +734,7 @@ class TestUpdateUserView(TestSetup):
 
         self.client.force_authenticate(user=self.user)
 
-    def t1est_user_update_valid(self):
+    def test_user_update_valid(self):
         data = {
             'email': 'new_email@gmail.com',
             'password': 'test123'
@@ -652,7 +750,7 @@ class TestUpdateUserView(TestSetup):
         self.assertEqual(response.data['email'], data['email'])
         self.assertEqual(User.objects.filter(email=data['email']).count(), 1)
     
-    def t1est_user_update_whitespace_body(self):
+    def test_user_update_whitespace_body(self):
         data_white_email = {
             'email': '  ',
             'password': 'test123'
@@ -679,7 +777,7 @@ class TestUpdateUserView(TestSetup):
         self.assertEqual(response_white_password.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertEqual(response_white_password.data['password'][0].code, 'blank')
     
-    def t1est_user_update_bad_format_fields(self):
+    def test_user_update_bad_format_fields(self):
         data = {
             'email': 'new_email.gmail',
             'password': 'test123'
@@ -694,7 +792,7 @@ class TestUpdateUserView(TestSetup):
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertEqual(response.data['email'][0].code, 'invalid')
     
-    def t1est_user_update_incomplete_body(self):
+    def test_user_update_incomplete_body(self):
         data_no_email = {
             'password': 'test123'
         }
@@ -718,7 +816,7 @@ class TestUpdateUserView(TestSetup):
         self.assertEqual(response_no_email.status_code, status.HTTP_200_OK)
         self.assertEqual(response_no_password.status_code, status.HTTP_200_OK)
     
-    def t1est_user_update_not_updatable_fields(self):
+    def test_user_update_not_updatable_fields(self):
         data = {
             'username': 'new username',
             'slug': 'new_cool_username',
@@ -735,7 +833,7 @@ class TestUpdateUserView(TestSetup):
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertEqual(response.data['message'], 'Only email and password are updatable')
 
-    def t1est_user_update_deleted_user(self):
+    def test_user_update_deleted_user(self):
         self.client.force_authenticate(user=self.deleted_user)
         data = {
             'email': 'new_email@gmail.com',
@@ -750,7 +848,7 @@ class TestUpdateUserView(TestSetup):
 
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
     
-    def t1est_user_update_not_authenticated(self):
+    def test_user_update_not_authenticated(self):
         self.client.force_authenticate(user=None)
         data = {
             'email': 'new_email@gmail.com',
@@ -765,7 +863,7 @@ class TestUpdateUserView(TestSetup):
 
         self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
 
-    def t1est_user_update_event_published(self):
+    def test_user_update_event_published(self):
         REDIS_URL = os.environ.get("REDIS_URL", None)
         redis_client = redis.from_url(
             REDIS_URL,
@@ -813,7 +911,7 @@ class TestUpdateUserView(TestSetup):
         self.assertEqual(events[0]['type'], 'update')
         self.assertEqual(events[0]['data']['email'], data['email'])
     
-    def t1est_user_update_invalid_methods(self):
+    def test_user_update_invalid_methods(self):
         data = {
             'email': 'new_email@gmail.com',
             'password': 'test123'
@@ -845,20 +943,20 @@ class TestUpdateUserView(TestSetup):
         self.assertEqual(response_get.status_code, status.HTTP_405_METHOD_NOT_ALLOWED)
         self.assertEqual(response_delete.status_code, status.HTTP_405_METHOD_NOT_ALLOWED)
 
-
+@skip('tested')
 class TestDeleteUserView(TestSetup):
     def setUp(self):
         self.user = UserFactory.build()
         self.client.force_authenticate(user=self.user)
 
-    def t1est_user_delete_valid(self):
+    def test_user_delete_valid(self):
         response = self.client.delete(
             self.urls['delete']
         )
         
         self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
 
-    def t1est_user_delete_already_deleted(self):
+    def test_user_delete_already_deleted(self):
         self.client.delete(
             self.urls['delete']
         )
@@ -869,7 +967,7 @@ class TestDeleteUserView(TestSetup):
         
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
     
-    def t1est_user_delete_event_published(self):
+    def test_user_delete_event_published(self):
         REDIS_URL = os.environ.get("REDIS_URL", None)
         redis_client = redis.from_url(
             REDIS_URL,
@@ -911,7 +1009,7 @@ class TestDeleteUserView(TestSetup):
         self.assertEqual(events[0]['type'], 'delete')
         self.assertEqual(events[0]['data']['email'], self.user.email)
 
-    def t1est_user_delete_not_authenticated(self):
+    def test_user_delete_not_authenticated(self):
         self.client.force_authenticate(user=None)
 
         response = self.client.delete(

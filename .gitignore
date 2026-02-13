@@ -10,3 +10,4 @@ media/
 logs/
 **/*.sqlite3
 TO-DO.txt
+test.log
