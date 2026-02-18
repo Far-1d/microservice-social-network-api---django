@@ -11,6 +11,9 @@ from apps.relationships.models import (
 from apps.users.models import User
 from apps.relationships.api.v1_0.serializers.block import BlockSerializer
 from apps.users.api.v1_0.serializers import UserSimpleSerializer
+from settings.logging import get_logger
+
+logger = get_logger('block_relation')
 
 class BlockApi(APIView):
     permission_classes = [permissions.IsAuthenticated]
@@ -46,6 +49,7 @@ class BlockApi(APIView):
         
         # stop self-request
         if request.user == blocked_user:
+            logger.warning('User_block_himself') # user id and etc is added in the middleware
             return Response (
                 {'message': _('You cannot block yourself')},
                 status=status.HTTP_400_BAD_REQUEST
@@ -64,6 +68,7 @@ class BlockApi(APIView):
             blocked=blocked_user
         )
         if blocks.exists():
+            logger.warning('Already_blocked', blocked_user=str(blocked_user.id))
             return Response(
                 {'message': _('Already Blocked')},
                 status=status.HTTP_400_BAD_REQUEST

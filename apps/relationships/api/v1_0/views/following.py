@@ -18,9 +18,9 @@ from apps.relationships.api.v1_0.serializers.following import (
 )
 from apps.users.models import User
 from apps.users.api.v1_0.serializers import UserSimpleSerializer
-import logging
+from settings.logging import get_logger
 
-logger = logging.getLogger(__name__)
+logger=get_logger('following_relation')
 
 class FollowCountReadApi(APIView):
     # permission_classes = [permissions.IsAuthenticated]

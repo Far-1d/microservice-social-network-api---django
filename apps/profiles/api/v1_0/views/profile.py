@@ -19,7 +19,9 @@ from apps.profiles.api.v1_0.serializers.profile import (
     ProfileUpdateSerializer
 )
 from apps.relationships.models import Block
+from settings.logging import get_logger
 
+logger = get_logger('profile_v1')
 
 # privacy filters are done in serializer
 
@@ -31,6 +33,7 @@ class ProfileReadApi(APIView):
         try:
             profile = Profile.objects.select_related('user', 'privacy').get(user__slug=slug)
         except Profile.DoesNotExist:
+            logger.warning('Profile_doesNotExist', slug=slug)
             return Response(
                 {'message': _('Profile not found')},
                 status=status.HTTP_404_NOT_FOUND

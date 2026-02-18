@@ -14,9 +14,9 @@ from apps.profiles.api.v2_0.serializers.privacy import (
     PrivacySerializer,
     PrivacyUpdateSerializer,
 )
-import logging
+from settings.logging import get_logger
 
-logger = logging.getLogger(__name__)
+logger = get_logger('privacy_v2')
 
 
 class PrivacyReadApi(APIView):
@@ -36,18 +36,17 @@ class PrivacyReadApi(APIView):
             )
         
         except Profile.DoesNotExist:
-            logger.warning(f'no profile for user {user.username} found')
+            logger.error(f'User_profile_doesNotExist', email=user.email)
 
             profile = Profile.objects.create(user=user)
             privacy = ProfilePrivacy.objects.create(profile=profile)
 
         except ProfilePrivacy.DoesNotExist:
-            # Handle case where privacy settings don't exist
-            logger.warning(f'no privacy for user {user.username} found. profile : {profile}')
+            logger.error(f'User_privacy_doesNotExist', email=user.email, profile_id=str(profile.id))
             privacy = ProfilePrivacy.objects.create(profile=profile)
 
         except Exception as e:
-            logger.error(f'privacy read error: {e}', exc_info=True)
+            logger.error(f'Privacy_read_error',  error=str(e), exc_info=True)
 
         serializer = PrivacySerializer(privacy)
 
@@ -72,6 +71,8 @@ class PrivacyUpdateApi(APIView):
         updated_privacy = serializer.save()
 
         response_serializer = PrivacySerializer(updated_privacy)
+        
+        logger.info('Privacy_update_success')
 
         return Response(
             response_serializer.data,

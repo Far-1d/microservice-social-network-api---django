@@ -15,9 +15,9 @@ from apps.communications.events import UserEventManager
 from apps.users.models import User, PasswordResetCode
 from django.utils import timezone
 from datetime import timedelta
-import logging
+from settings.logging import get_logger
 
-logger = logging.getLogger(__name__)
+logger = get_logger('user_v2')
 
 class UserSignupApi(APIView):
     permission_classes = [permissions.AllowAny]
@@ -29,9 +29,8 @@ class UserSignupApi(APIView):
 
         try:
             deleted_user = User.objects.get(email=serializer.validated_data.get('email'))
-            logger.warning(f"a new user attempts to create account using a deleted account's email")
-            logger.warning(f"email:{deleted_user.email},  deleted at: {deleted_user.deleted_at}")
             if deleted_user.deleted:
+                logger.warning(f"Deleted_account_recreation", email=deleted_user.email, deleted_at=str(deleted_user.deleted_at))
                 deleted_user.delete()
 
         except User.DoesNotExist:
@@ -100,7 +99,7 @@ class UserPasswordResetApi(APIView):
 
             # check user is not deleted
             if user.deleted or not user.is_active:
-                logger.warning(f"Password reset attempt for inactive user: {user.email}")
+                logger.warning(f"Inactive_user_password_reset", user_id=str(user.id), email=user.email)
                 return Response(
                     {'message':_('User not found')},
                     status=status.HTTP_404_NOT_FOUND
@@ -121,7 +120,7 @@ class UserPasswordResetApi(APIView):
             user.save(update_fields=['password'])
             password_reset.delete()
 
-            logger.info(f"Password reset successful for user: {user.email}")
+            logger.info(f"Password_reset_success", user_id=str(user.id), email=user.email)
 
             return Response(
                 {'message': _('Password reset successful')},
@@ -129,14 +128,13 @@ class UserPasswordResetApi(APIView):
             )
         
         except PasswordResetCode.DoesNotExist:
-            logger.warning(f"Invalid password reset code attempt: {serializer.validated_data.get('code')}")
             return Response(
                 {'message': _('Failed to verify code, please try again in a few moments.')},
                 status=status.HTTP_400_BAD_REQUEST
             )
         
         except PasswordResetCode.MultipleObjectsReturned:
-            logger.critical(f"Multiple password reset codes found for code: {serializer.validated_data.get('code')}")
+            logger.critical(f"Multiple_password_reset_codes", code=serializer.validated_data.get('code'))
             PasswordResetCode.objects.filter(code=serializer.validated_data['code']).delete()
             return Response(
                 {'message': _('System error. Please request a new code.')},
@@ -144,7 +142,7 @@ class UserPasswordResetApi(APIView):
             )
 
         except Exception as e:
-            logger.error(f"Password reset error: {str(e)}", exc_info=True)
+            logger.error(f"Password_reset_error", error=str(e), exc_info=True)
             return Response(
                 {'message': _('An error occurred during password reset')},
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR
