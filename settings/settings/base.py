@@ -157,64 +157,20 @@ LOGGING = {
     "version": 1,
     "disable_existing_loggers": False,
     "formatters":{
-        "verbose": {
-            "format": "{levelname} -> {asctime} -> {module} -> {process:d} -> {thread:d} -> {message}",
-            "style": "{",
-        },
-        "medium": {
-            "format": "{levelname} -> {asctime} -> {module} -> {message}",
-            "style": "{",
-        },
-        "simple": {
-            "format": "{levelname} -> {message}",
-            "style": "{",
+        "plain": {
+            "format": "-> %(message)s",
         },
     },
     "handlers": {
         "console": {
-            "level": "INFO",
             "class": "logging.StreamHandler",
-            "formatter": "simple",
-        },
-        "file_info": {
-            "level": "INFO",
-            "class": "logging.FileHandler",
-            "filename": "logs/info.log",
-            "formatter": "medium",
-        },
-        "file_error": {
-            "level": "WARNING",
-            "class": "logging.FileHandler",
-            "filename": "logs/error.log",
-            "formatter": "verbose",
+            "formatter": "plain",
         },
     },
     "root": {  # catch all unhandled logs
-        "handlers": ["console", "file_info", "file_error"],
-        "level": "DEBUG",
+        "handlers": ["console"],
+        "level": "INFO",
     },
-    "loggers": {
-        "django": {
-            "handlers": ["console", "file_error"],
-            "level": "INFO",
-            "propagate": False,
-        },
-        "django.request": {
-            "handlers": ["file_error"],
-            "level": "WARNING",
-            "propagate": False,
-        },
-        "django.server": {
-            "handlers": ["console", "file_info"],
-            "level": "INFO",
-            "propagate": False,
-        },
-    },
-    "filters": {
-        "require_debug_true": {
-            "()": "django.utils.log.RequireDebugTrue",
-        }
-    }
 }
 
 
