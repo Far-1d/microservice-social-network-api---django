@@ -16,6 +16,7 @@ from apps.users.models import User, PasswordResetCode
 from django.utils import timezone
 from datetime import timedelta
 from settings.logging import get_logger
+from utils.metrics import new_users_total
 
 logger = get_logger('user_v2')
 
@@ -62,6 +63,8 @@ class UserSignupApi(APIView):
         events = UserEventManager()
         events.publish('create', user)
 
+        new_users_total.inc()
+        
         return Response(
             {
                 'message': _('Account create successful'),

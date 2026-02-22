@@ -12,6 +12,11 @@ from apps.users.models import User
 from apps.relationships.api.v1_0.serializers.block import BlockSerializer
 from apps.users.api.v1_0.serializers import UserSimpleSerializer
 from settings.logging import get_logger
+from utils.metrics import (
+    blocks_total,
+    interactions_total,
+    follow_total,
+)
 
 logger = get_logger('block_relation')
 
@@ -75,15 +80,22 @@ class BlockApi(APIView):
             )
 
         # remove following relationships
-        Following.objects.filter(
+        following = Following.objects.filter(
             Q(user=request.user,following=blocked_user) |
             Q(user=blocked_user,following=request.user) 
-        ).delete()
+        )
+        if following.exists():
+            following.delete()
+            follow_total.dec()
 
+        
         Block.objects.create(
             user=request.user,
             blocked=blocked_user
         )
+
+        blocks_total.inc()
+        interactions_total.inc() # block is some kind of interaction
 
         return Response(
             {'message': _('Block successful')},
@@ -107,6 +119,8 @@ class BlockApi(APIView):
             blocked=blocked_user
         ).delete()
 
+        blocks_total.dec()
+        
         return Response(
             {'message': _('Request remove successful')},
             status=status.HTTP_200_OK

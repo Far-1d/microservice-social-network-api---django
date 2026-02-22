@@ -25,6 +25,12 @@ from django.db import transaction
 from apps.users.utils import send_email
 from settings.logging import get_logger
 from apps.communications.events import UserEventManager
+from utils.metrics import (
+    new_users_total, 
+    login_attempts_total,
+    password_reset_requests_total,
+    users_deleted_total
+)
 
 logger = get_logger('user_v1')
 
@@ -83,6 +89,8 @@ class UserSignupApi(APIView):
         events = UserEventManager()
         events.publish('create', user)
 
+        new_users_total.inc()
+
         return Response(
             {
                 'message': _('Account create successful'),
@@ -95,9 +103,11 @@ class UserLoginApi(APIView):
     permission_classes = [permissions.AllowAny]
 
     def post(self, request) -> Response:
+        
         # don't allow logged in user to login again
         if request.user.is_authenticated:
             logger.warning(f'Already_logged_in')
+            login_attempts_total.labels(status='failed').inc()
             return Response(
                 {'message': _('You are already logged in')},
                 status=status.HTTP_400_BAD_REQUEST
@@ -128,6 +138,7 @@ class UserLoginApi(APIView):
                 pass
         
         if not user or user.deleted:
+            login_attempts_total.labels(status='failed').inc()
             return Response(
                 {'message': _('User not found')},
                 status=status.HTTP_404_NOT_FOUND
@@ -138,6 +149,7 @@ class UserLoginApi(APIView):
 
         tokens = token_serializer.validate({})
 
+        login_attempts_total.labels(status='success').inc()
         return Response(
             tokens,
             status=status.HTTP_200_OK
@@ -180,6 +192,9 @@ class UserPasswordForgotApi(APIView):
             pass
         
         logger.info(f'Password_forgot_created', user_id=str(user.id))
+        
+        password_reset_requests_total.inc()
+
         return Response(
             {
                 'message': _('If this email exists, a reset code has been sent'),
@@ -324,6 +339,8 @@ class UserDeleteApi(APIView):
         # send user info to other services
         events = UserEventManager()
         events.publish('delete', user)
+        
+        users_deleted_total.inc()
         
         return Response(
             status=status.HTTP_204_NO_CONTENT

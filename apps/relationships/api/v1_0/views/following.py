@@ -19,6 +19,11 @@ from apps.relationships.api.v1_0.serializers.following import (
 from apps.users.models import User
 from apps.users.api.v1_0.serializers import UserSimpleSerializer
 from settings.logging import get_logger
+from utils.metrics import (
+    follow_request_total,
+    follow_total,
+    interactions_total
+)
 
 logger=get_logger('following_relation')
 
@@ -201,6 +206,9 @@ class FollowRequestApi(APIView):
             message=serializer.validated_data['message']
         )
 
+        follow_request_total.inc()
+        interactions_total.inc()
+
         return Response(
             {'message': _('Request successful')},
             status=status.HTTP_200_OK
@@ -222,6 +230,8 @@ class FollowRequestApi(APIView):
             user=request.user,
             following=followed_user
         ).delete()
+
+        follow_request_total.dec()
 
         return Response(
             {'message': _('Request remove successful')},
@@ -262,10 +272,14 @@ class FollowRequestResponseApi(APIView):
                 user=requested_user,
                 following=request.user
             )
-        
+
+            follow_total.inc()
+
         # remove request
         requests.delete()
         
+        follow_request_total.dec()
+
         return Response(
             {'message': _('Request accept successful' if request_accepted else 'Request reject successfull')},
             status=status.HTTP_200_OK
@@ -311,6 +325,8 @@ class FollowToggleApi(APIView):
         if not created:
             follow.delete()
             
+            follow_total.dec()
+
             return Response(
                 {
                     'message': _('Unfollowed successfully'),
@@ -319,6 +335,9 @@ class FollowToggleApi(APIView):
                 },
                 status=status.HTTP_200_OK
             )
+
+        follow_total.inc()
+        interactions_total.inc()
 
         return Response(
             {
