@@ -18,12 +18,14 @@ from django.contrib import admin
 from django.urls import path, include
 from django.conf import settings
 from django.conf.urls.static import static
+from prometheus_client.django import PrometheusDjangoView
 
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('api/users/', include('apps.users.urls', namespace='users')),
     path('api/profiles/', include('apps.profiles.urls', namespace='profiles')),
     path('api/relationships/', include('apps.relationships.urls', namespace='relationships')),
+    path('metrics/', PrometheusDjangoView.as_view(), name="prometheus-metrics"),
 ]
 
 if settings.DEBUG:
