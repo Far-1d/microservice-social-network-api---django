@@ -1,0 +1,12 @@
+project_venv/
+windows_venv/
+**/__pycache__/
+*.pyc
+static/
+media/
+*.mo
+**/migrations/0*
+logs/
+**/*.sqlite3
+TO-DO.txt
+test.log

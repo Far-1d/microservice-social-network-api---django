@@ -1,7 +1,11 @@
 import time, uuid
 import structlog
 from settings.logging import get_logger
-
+from utils.metrics import (
+    api_requests_by_version,
+    response_time_ms,
+    response_codes_total
+)
 
 class LoggingMiddleware:
     """
@@ -44,8 +48,8 @@ class LoggingMiddleware:
         try:
             response = self.get_response(request)
             status_code = response.status_code
+            return response
             
-
         except Exception as exc:
             logger.error(
                 "request_failed",
@@ -58,7 +62,10 @@ class LoggingMiddleware:
             duration_ms = round((time.perf_counter() - start_time) * 1000, 2)
             
             if request.path not in ("/metrics", "/health"):
-            
+                api_requests_by_version.labels(version=getattr(request, 'api_version', '1.0')).inc()
+                response_time_ms.labels(endpoint=request.path).observe(duration_ms)
+                response_codes_total.labels(status_code=str(status_code)).inc()
+
                 log_fn = logger.warning if status_code >= 400 else logger.info
                 log_fn(
                     "request_finished",
@@ -66,7 +73,6 @@ class LoggingMiddleware:
                     duration_ms=duration_ms
                 )
             
-            return response
 
     def _get_client_ip(self, request):
         x_forwarded_for = request.META.get('HTTP_X_FORWARDED_FOR')
